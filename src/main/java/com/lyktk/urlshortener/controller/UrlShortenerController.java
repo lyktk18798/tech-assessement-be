@@ -12,6 +12,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
 
 @RestController
@@ -44,6 +48,11 @@ public class UrlShortenerController {
         }
 
         UrlMapping urlMapping=  urlService.saveMappingUrl(url);
-        return ResponseEntity.ok(urlMapping.getShortUrl());
+        return ResponseEntity.ok(getRequestBaseUrl()+"/"+urlMapping.getShortUrl());
+    }
+
+    private String getRequestBaseUrl() {
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
+        return request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
     }
 }

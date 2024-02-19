@@ -28,12 +28,17 @@ public class UrlService {
         if (ObjectUtils.isEmpty(originalUrl)) {
             throw new InvalidDataException("Original URL cannot be null or empty");
         }
-        // Generate short URL
-        String shortUrl = generateShortUrl(originalUrl, 6);
 
-        if(ObjectUtils.isEmpty(shortUrl)) {
-            throw new RuntimeException("Error occurred");
+        // Check if the original URL already exists in the database
+        UrlMapping existingMapping = urlRepository.findByOriginalUrl(originalUrl);
+        if (existingMapping != null) {
+            log.info("URL mapping already exists for Original URL: {}", originalUrl);
+            return existingMapping;
         }
+
+        // Generate short URL
+        String shortUrl = generateUniqueShortUrl(originalUrl, 6);
+
         // Save the original and short URL in the database
         UrlMapping urlMapping = new UrlMapping();
         urlMapping.setId(UUID.randomUUID());
@@ -60,6 +65,23 @@ public class UrlService {
             throw new NoDataFoundException(shortUrl);
         }
         return urlMapping.getOriginalUrl();
+    }
+
+    private String generateUniqueShortUrl(String originalUrl, int length) {
+        String shortUrl = generateShortUrl(originalUrl, length);
+        if(ObjectUtils.isEmpty(shortUrl)) {
+            throw new RuntimeException("Error occurred");
+        }
+        UrlMapping existingMapping = urlRepository.findByShortUrl(shortUrl);
+
+        // If the generated short URL already exists, modify it until it's unique
+        while (existingMapping != null) {
+            // Modify the shortened URL to create a new one
+            shortUrl = generateShortUrl(originalUrl + System.currentTimeMillis(), length);
+            existingMapping = urlRepository.findByShortUrl(shortUrl);
+        }
+
+        return shortUrl;
     }
 
 }

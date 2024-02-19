@@ -50,7 +50,7 @@ public class UrlShortenerControllerTest {
         ResponseEntity<?> response = urlShortenerController.create(originalUrl);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(shortUrl, response.getBody());
+        assertEquals("http://localhost:80/"+ shortUrl, response.getBody());
     }
 
     @Test
